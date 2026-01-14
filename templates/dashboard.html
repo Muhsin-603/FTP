@@ -8,6 +8,7 @@
         :root {
             --bg-color: #0a0a0a;
             --terminal-green: #00ff41;
+            --terminal-cyan: #00ffff;
             --terminal-dim: #008f11;
             --dim-gray: #333;
             --error-red: #ff3333;
@@ -49,38 +50,14 @@
         }
 
         /* ACTIONS ZONE */
-        .controls {
-            display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start;
-        }
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start; }
+        .upload-box { flex-grow: 2; border: 1px solid var(--terminal-dim); padding: 15px; display: flex; gap: 15px; }
+        .upload-column { flex: 1; display: flex; flex-direction: column; }
+        .upload-label { color: var(--terminal-dim); font-size: 0.7em; margin-bottom: 5px; text-transform: uppercase; }
+        .divider { width: 1px; background: var(--terminal-dim); }
+        .nuke-box { flex-grow: 0; border: 1px solid var(--error-red); padding: 15px; display: flex; flex-direction: column; justify-content: center; }
 
-        /* The New Dual Upload Module */
-        .upload-box {
-            flex-grow: 2; border: 1px solid var(--terminal-dim); padding: 15px;
-            display: flex; gap: 15px;
-        }
-
-        .upload-column {
-            flex: 1; display: flex; flex-direction: column;
-        }
-        
-        .upload-label {
-            color: var(--terminal-dim); font-size: 0.7em; margin-bottom: 5px; text-transform: uppercase;
-        }
-
-        .divider {
-            width: 1px; background: var(--terminal-dim);
-        }
-
-        .nuke-box {
-            flex-grow: 0; border: 1px solid var(--error-red); padding: 15px;
-            display: flex; flex-direction: column; justify-content: center;
-        }
-
-        button {
-            border: none; padding: 10px 15px; font-weight: bold; cursor: pointer;
-            text-transform: uppercase; font-family: inherit; transition: all 0.2s;
-            width: 100%;
-        }
+        button { border: none; padding: 10px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: inherit; transition: all 0.2s; width: 100%; }
 
         .btn-upload { background: var(--terminal-green); color: black; margin-top: auto; }
         .btn-upload:hover { box-shadow: 0 0 10px var(--terminal-green); }
@@ -88,37 +65,41 @@
         .btn-nuke { background: transparent; color: var(--error-red); border: 1px solid var(--error-red); }
         .btn-nuke:hover { background: var(--error-red); color: black; box-shadow: 0 0 10px var(--error-red); }
 
-        .btn-del-mini {
-            background: transparent; color: var(--error-red); border: 1px solid var(--error-red);
-            padding: 2px 5px; font-size: 0.7em; margin-top: 5px; width: 100%;
-        }
+        /* ITEM ACTIONS */
+        .btn-group { display: flex; gap: 5px; margin-top: 5px; }
+        .btn-retrieve { background: transparent; color: var(--terminal-cyan); border: 1px solid var(--terminal-cyan); padding: 2px 5px; font-size: 0.7em; flex: 1; }
+        .btn-retrieve:hover { background: var(--terminal-cyan); color: black; box-shadow: 0 0 8px var(--terminal-cyan); }
+        .btn-del-mini { background: transparent; color: var(--error-red); border: 1px solid var(--error-red); padding: 2px 5px; font-size: 0.7em; flex: 1; }
         .btn-del-mini:hover { background: var(--error-red); color: white; }
 
-        /* GRID LAYOUT */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-
-        .item-card {
-            border: 1px solid var(--dim-gray); padding: 10px; text-align: center;
-            transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between;
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px; }
+        .item-card { border: 1px solid var(--dim-gray); padding: 10px; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
         .item-card:hover { border-color: var(--terminal-green); background: rgba(0, 255, 65, 0.05); }
-
-        .item-link { text-decoration: none; color: var(--terminal-green); overflow: hidden; text-overflow: ellipsis; }
+        .item-link { text-decoration: none; color: var(--terminal-green); overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
         .folder-link { color: #fff; font-weight: bold; }
-        
         .icon { font-size: 2.5em; display: block; margin-bottom: 5px; }
-        
         .back-btn { color: var(--terminal-green); text-decoration: none; font-weight: bold; }
 
+        .uploader-tag { font-size: 0.6em; color: var(--terminal-dim); text-transform: uppercase; margin-bottom: 10px; display: block; }
+
+        /* --- PROGRESS MODAL CSS --- */
+        #progress-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); z-index: 2000;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        .progress-box { width: 400px; padding: 20px; border: 2px solid var(--terminal-green); background: #000; box-shadow: 0 0 30px var(--terminal-green); text-align: center; }
+        .progress-title { color: var(--terminal-green); margin-bottom: 15px; font-size: 1.2em; text-transform: uppercase; letter-spacing: 2px; animation: blink 1s infinite; }
+        .progress-bar-container { width: 100%; height: 20px; background: #111; border: 1px solid var(--dim-gray); margin-bottom: 10px; position: relative; }
+        #progress-fill { height: 100%; background: var(--terminal-green); width: 0%; transition: width 0.1s linear; }
+        #progress-text { color: #fff; font-size: 0.9em; margin-bottom: 15px; }
+        
+        .btn-cancel { background: var(--error-red); color: white; border: none; padding: 10px; font-weight: bold; cursor: pointer; width: 100%; }
+        .btn-cancel:hover { background: #ff0000; box-shadow: 0 0 10px var(--error-red); }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
     </style>
-    <script>
-        function confirmNuke() {
-            return confirm("WARNING: You are about to INCINERATE all data in this sector.\n\nThis action cannot be undone.\n\nProceed?");
-        }
-        function confirmDelete(itemName) {
-            return confirm("Confirm deletion of protocol: " + itemName + "?");
-        }
-    </script>
 </head>
 <body>
 
@@ -137,7 +118,7 @@
 
         <div class="controls">
             <div class="upload-box">
-                <form action="/upload" method="post" enctype="multipart/form-data" class="upload-column">
+                <form id="form-files" class="upload-column" onsubmit="handleUpload(event, this)">
                     <input type="hidden" name="current_path" value="{{ current_path }}">
                     <span class="upload-label">Standard Transmission</span>
                     <input type="file" name="file" multiple style="color: var(--terminal-green); margin-bottom: 10px; font-size: 0.8em;">
@@ -146,7 +127,7 @@
 
                 <div class="divider"></div>
 
-                <form action="/upload" method="post" enctype="multipart/form-data" class="upload-column">
+                <form id="form-folder" class="upload-column" onsubmit="handleUpload(event, this)">
                     <input type="hidden" name="current_path" value="{{ current_path }}">
                     <span class="upload-label">Structure Injection</span>
                     <input type="file" name="file" multiple webkitdirectory style="color: var(--terminal-green); margin-bottom: 10px; font-size: 0.8em;">
@@ -165,40 +146,175 @@
         <div class="grid">
             {% for folder in folders %}
             <div class="item-card">
-                <a href="{{ url_for('dashboard', req_path=(current_path + '/' + folder) if current_path else folder) }}" class="item-link folder-link">
-                    <span class="icon">📂</span>
-                    {{ folder }}
-                </a>
-                <form action="/delete" method="post" onsubmit="return confirmDelete('{{ folder }}')">
-                    <input type="hidden" name="current_path" value="{{ current_path }}">
-                    <input type="hidden" name="item_name" value="{{ folder }}">
-                    <button type="submit" class="btn-del-mini">[ DELETE ]</button>
-                </form>
+                <div>
+                    <a href="{{ url_for('dashboard', req_path=(current_path + '/' + folder.name) if current_path else folder.name) }}" class="item-link folder-link">
+                        <span class="icon">📂</span>{{ folder.name }}
+                    </a>
+                    <span class="uploader-tag">OWNER: {{ folder.uploader }}</span>
+                </div>
+                <div class="btn-group">
+                    <form onsubmit="handleRetrieve(event, this)" style="flex:1;">
+                        <input type="hidden" name="current_path" value="{{ current_path }}">
+                        <input type="hidden" name="item_name" value="{{ folder.name }}">
+                        <button type="submit" class="btn-retrieve">[ RETRIEVE ]</button>
+                    </form>
+                    <form action="/delete" method="post" onsubmit="return confirmDelete('{{ folder.name }}')" style="flex:1;">
+                        <input type="hidden" name="current_path" value="{{ current_path }}">
+                        <input type="hidden" name="item_name" value="{{ folder.name }}">
+                        <button type="submit" class="btn-del-mini">[ DELETE ]</button>
+                    </form>
+                </div>
             </div>
             {% endfor %}
 
             {% for file in files %}
             <div class="item-card">
-                <a href="{{ url_for('dashboard', req_path=(current_path + '/' + file) if current_path else file) }}" class="item-link">
-                    <span class="icon">📄</span>
-                    {{ file }}
-                </a>
-                <form action="/delete" method="post" onsubmit="return confirmDelete('{{ file }}')">
-                    <input type="hidden" name="current_path" value="{{ current_path }}">
-                    <input type="hidden" name="item_name" value="{{ file }}">
-                    <button type="submit" class="btn-del-mini">[ DELETE ]</button>
-                </form>
+                <div>
+                    <a href="{{ url_for('dashboard', req_path=(current_path + '/' + file.name) if current_path else file.name) }}" class="item-link">
+                        <span class="icon">📄</span>{{ file.name }}
+                    </a>
+                    <span class="uploader-tag">OWNER: {{ file.uploader }}</span>
+                </div>
+                <div class="btn-group">
+                    <form onsubmit="handleRetrieve(event, this)" style="flex:1;">
+                        <input type="hidden" name="current_path" value="{{ current_path }}">
+                        <input type="hidden" name="item_name" value="{{ file.name }}">
+                        <button type="submit" class="btn-retrieve">[ RETRIEVE ]</button>
+                    </form>
+                    <form action="/delete" method="post" onsubmit="return confirmDelete('{{ file.name }}')" style="flex:1;">
+                        <input type="hidden" name="current_path" value="{{ current_path }}">
+                        <input type="hidden" name="item_name" value="{{ file.name }}">
+                        <button type="submit" class="btn-del-mini">[ DELETE ]</button>
+                    </form>
+                </div>
             </div>
             {% endfor %}
         </div>
         
         {% if not folders and not files %}
             <div style="text-align: center; color: var(--dim-gray); padding: 40px; font-style: italic;">
-                > SECTOR EMPTY.<br>
-                > AWAITING DATA INPUT...
+                > SECTOR EMPTY.<br>> AWAITING DATA INPUT...
             </div>
         {% endif %}
     </div>
+
+    <div id="progress-modal">
+        <div class="progress-box">
+            <div id="progress-title" class="progress-title">TRANSMITTING DATA...</div>
+            <div class="progress-bar-container">
+                <div id="progress-fill"></div>
+            </div>
+            <div id="progress-text">INITIALIZING PROTOCOLS...</div>
+            <button class="btn-cancel" onclick="abortTransfer()">[ ABORT SEQUENCE ]</button>
+        </div>
+    </div>
+
+    <script>
+        function confirmNuke() { return confirm("WARNING: INCINERATE SECTOR?\n\nCannot be undone."); }
+        function confirmDelete(name) { return confirm("Delete: " + name + "?"); }
+
+        let activeXHR = null; // Store the active request to cancel it later
+
+        // --- UPLOAD LOGIC ---
+        function handleUpload(event, form) {
+            event.preventDefault();
+            let formData = new FormData(form);
+            if(formData.getAll("file")[0].size === 0) return;
+
+            showModal("TRANSMITTING TO CORE");
+            
+            activeXHR = new XMLHttpRequest();
+            activeXHR.open("POST", "/upload", true);
+
+            activeXHR.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    let percent = (e.loaded / e.total) * 100;
+                    updateProgress(percent, "UPLOADING PACKETS: " + Math.round(percent) + "%");
+                }
+            };
+
+            activeXHR.onload = function() {
+                if (activeXHR.status === 200) {
+                    updateProgress(100, "TRANSMISSION COMPLETE");
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    updateProgress(0, "ERROR: LINK SEVERED");
+                    setTimeout(hideModal, 2000);
+                }
+            };
+
+            activeXHR.send(formData);
+        }
+
+        // --- DOWNLOAD LOGIC ---
+        function handleRetrieve(event, form) {
+            event.preventDefault();
+            let formData = new FormData(form);
+            let itemName = formData.get("item_name");
+
+            showModal("RECEIVING DATA STREAM");
+            
+            activeXHR = new XMLHttpRequest();
+            activeXHR.open("POST", "/retrieve", true);
+            activeXHR.responseType = "blob";
+
+            activeXHR.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    let percent = (e.loaded / e.total) * 100;
+                    updateProgress(percent, "DOWNLOADING: " + Math.round(percent) + "%");
+                } else {
+                    updateProgress(100, "STREAMING DATA...");
+                }
+            };
+
+            activeXHR.onload = function() {
+                if (activeXHR.status === 200) {
+                    let blob = this.response;
+                    let filename = itemName; 
+                    if (blob.type === "application/zip" && !filename.endsWith('.zip')) {
+                        filename += ".zip";
+                    }
+                    let url = window.URL.createObjectURL(blob);
+                    let a = document.createElement("a");
+                    a.style.display = "none"; a.href = url; a.download = filename;
+                    document.body.appendChild(a); a.click();
+                    window.URL.revokeObjectURL(url);
+                    hideModal();
+                } else {
+                    updateProgress(0, "RETRIEVAL FAILED");
+                    setTimeout(hideModal, 2000);
+                }
+            };
+
+            activeXHR.send(formData);
+        }
+
+        // --- ABORT LOGIC ---
+        function abortTransfer() {
+            if (activeXHR) {
+                activeXHR.abort();
+                updateProgress(0, "SEQUENCE ABORTED BY USER");
+                setTimeout(hideModal, 1000);
+                // The server will see the disconnect and the .part file will NOT be renamed.
+            }
+        }
+
+        function showModal(title) {
+            document.getElementById("progress-modal").style.display = "flex";
+            document.getElementById("progress-title").innerText = title;
+            updateProgress(0, "ESTABLISHING CONNECTION...");
+        }
+
+        function hideModal() {
+            document.getElementById("progress-modal").style.display = "none";
+            activeXHR = null;
+        }
+
+        function updateProgress(percent, text) {
+            document.getElementById("progress-fill").style.width = percent + "%";
+            document.getElementById("progress-text").innerText = text;
+        }
+    </script>
 
 </body>
 </html>
