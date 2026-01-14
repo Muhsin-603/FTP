@@ -53,20 +53,36 @@
             display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start;
         }
 
+        /* The New Dual Upload Module */
         .upload-box {
-            flex-grow: 1; border: 1px solid var(--terminal-dim); padding: 15px;
+            flex-grow: 2; border: 1px solid var(--terminal-dim); padding: 15px;
+            display: flex; gap: 15px;
+        }
+
+        .upload-column {
+            flex: 1; display: flex; flex-direction: column;
+        }
+        
+        .upload-label {
+            color: var(--terminal-dim); font-size: 0.7em; margin-bottom: 5px; text-transform: uppercase;
+        }
+
+        .divider {
+            width: 1px; background: var(--terminal-dim);
         }
 
         .nuke-box {
-            border: 1px solid var(--error-red); padding: 15px;
+            flex-grow: 0; border: 1px solid var(--error-red); padding: 15px;
+            display: flex; flex-direction: column; justify-content: center;
         }
 
         button {
             border: none; padding: 10px 15px; font-weight: bold; cursor: pointer;
             text-transform: uppercase; font-family: inherit; transition: all 0.2s;
+            width: 100%;
         }
 
-        .btn-upload { background: var(--terminal-green); color: black; }
+        .btn-upload { background: var(--terminal-green); color: black; margin-top: auto; }
         .btn-upload:hover { box-shadow: 0 0 10px var(--terminal-green); }
 
         .btn-nuke { background: transparent; color: var(--error-red); border: 1px solid var(--error-red); }
@@ -121,17 +137,27 @@
 
         <div class="controls">
             <div class="upload-box">
-                <form action="/upload" method="post" enctype="multipart/form-data">
+                <form action="/upload" method="post" enctype="multipart/form-data" class="upload-column">
                     <input type="hidden" name="current_path" value="{{ current_path }}">
-                    <input type="file" name="file" multiple webkitdirectory style="color: var(--terminal-green); margin-bottom: 10px;">
-                    <button type="submit" class="btn-upload">INITIATE UPLOAD</button>
+                    <span class="upload-label">Standard Transmission</span>
+                    <input type="file" name="file" multiple style="color: var(--terminal-green); margin-bottom: 10px; font-size: 0.8em;">
+                    <button type="submit" class="btn-upload">UPLOAD FILES</button>
+                </form>
+
+                <div class="divider"></div>
+
+                <form action="/upload" method="post" enctype="multipart/form-data" class="upload-column">
+                    <input type="hidden" name="current_path" value="{{ current_path }}">
+                    <span class="upload-label">Structure Injection</span>
+                    <input type="file" name="file" multiple webkitdirectory style="color: var(--terminal-green); margin-bottom: 10px; font-size: 0.8em;">
+                    <button type="submit" class="btn-upload">UPLOAD FOLDER</button>
                 </form>
             </div>
 
             <div class="nuke-box">
                 <form action="/delete-all" method="post" onsubmit="return confirmNuke()">
                     <input type="hidden" name="current_path" value="{{ current_path }}">
-                    <button type="submit" class="btn-nuke">PURGE SECTOR</button>
+                    <button type="submit" class="btn-nuke">PURGE<br>SECTOR</button>
                 </form>
             </div>
         </div>
