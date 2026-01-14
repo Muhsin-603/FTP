@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYSTEM // NEW USER ENTRY</title>
+    <title>SYSTEM // NEW AGENT</title>
     <style>
         :root {
             --bg-color: #0a0a0a;
             --terminal-green: #00ff41;
+            --terminal-dim: #008f11;
             --error-red: #ff3333;
             --dim-gray: #333;
+            --glass-black: rgba(0, 0, 0, 0.95);
         }
 
         body {
@@ -24,17 +26,17 @@
             overflow: hidden;
         }
 
-        /* The CRT Screen Effect */
+        /* CRT Scanline Overlay */
         body::before {
             content: " ";
             display: block;
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             bottom: 0;
             right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
+            z-index: 999;
             background-size: 100% 2px, 3px 100%;
             pointer-events: none;
         }
@@ -42,26 +44,46 @@
         .register-container {
             border: 2px solid var(--terminal-green);
             padding: 40px;
-            width: 350px;
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            width: 380px;
+            background: var(--glass-black);
+            box-shadow: 0 0 25px rgba(0, 255, 65, 0.15);
             position: relative;
-            z-index: 3;
-            background: rgba(0, 0, 0, 0.9);
+            z-index: 1;
         }
 
         h2 {
             text-align: center;
-            border-bottom: 1px dashed var(--terminal-green);
-            padding-bottom: 10px;
+            border-bottom: 2px dashed var(--terminal-green);
+            padding-bottom: 15px;
             margin-top: 0;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 1.2em;
+            letter-spacing: 3px;
+            font-size: 1.4em;
+            text-shadow: 0 0 10px var(--terminal-dim);
+        }
+
+        .system-log {
+            font-size: 0.75em;
+            color: var(--terminal-dim);
+            margin-bottom: 25px;
+            font-family: monospace;
+            line-height: 1.4;
+            border-left: 2px solid var(--terminal-dim);
+            padding-left: 10px;
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             position: relative;
+        }
+
+        /* Input Label Styling */
+        label {
+            display: block;
+            font-size: 0.7em;
+            margin-bottom: 5px;
+            color: var(--terminal-dim);
+            text-transform: uppercase;
         }
 
         input {
@@ -70,103 +92,113 @@
             border: none;
             border-bottom: 1px solid var(--dim-gray);
             color: var(--terminal-green);
-            font-family: inherit;
-            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
             padding: 10px 0;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
+            box-sizing: border-box; /* Fixes padding issues */
         }
 
         input:focus {
             border-bottom: 1px solid var(--terminal-green);
+            box-shadow: 0 5px 10px -10px var(--terminal-green);
         }
 
         input::placeholder {
             color: #444;
+            font-size: 0.8em;
             text-transform: uppercase;
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             background: transparent;
             border: 1px solid var(--terminal-green);
             color: var(--terminal-green);
             font-family: inherit;
             font-weight: bold;
+            font-size: 1em;
             text-transform: uppercase;
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 10px;
+            letter-spacing: 1px;
         }
 
         button:hover {
             background: var(--terminal-green);
-            color: var(--bg-color);
-            box-shadow: 0 0 15px var(--terminal-green);
+            color: #000;
+            box-shadow: 0 0 20px var(--terminal-green);
         }
 
         .error-message {
-            color: var(--error-red);
-            font-size: 0.9em;
-            text-align: center;
-            margin-bottom: 15px;
             border: 1px solid var(--error-red);
-            padding: 5px;
+            color: var(--error-red);
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 0.85em;
+            text-align: center;
+            background: rgba(255, 51, 51, 0.1);
         }
 
-        .links {
-            margin-top: 20px;
+        .login-link {
+            display: block;
             text-align: center;
+            margin-top: 25px;
             font-size: 0.8em;
+            color: #666;
         }
 
         a {
-            color: #666;
+            color: var(--terminal-green);
             text-decoration: none;
-            transition: color 0.3s;
+            border-bottom: 1px dotted var(--terminal-green);
+            transition: all 0.3s;
         }
 
         a:hover {
-            color: var(--terminal-green);
-        }
-
-        /* Boot-up Animation */
-        @keyframes bootText {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-        
-        .system-msg {
-            font-size: 0.7em;
-            color: var(--dim-gray);
-            margin-bottom: 20px;
-            text-align: left;
-            animation: bootText 2s ease-in;
+            background: var(--terminal-green);
+            color: #000;
         }
     </style>
 </head>
 <body>
 
     <div class="register-container">
-        <h2>Identity Initialization</h2>
+        <h2>Initialize Agent</h2>
 
         {% if error %}
             <div class="error-message">
-                [FAILURE]: {{ error }}
+                [CRITICAL FAILURE]: {{ error }}
             </div>
         {% endif %}
 
-        <div class="system-msg">
-            > ALLOCATING STORAGE SPACE...<br>
-            > ENCRYPTING CREDENTIALS...<br>
-            > WAITING FOR USER INPUT...
+        <div class="system-log">
+            > ALLOCATING SECTOR... OK<br>
+            > ENCRYPTING KEYS... OK<br>
+            > AWAITING USER CREDENTIALS_
         </div>
 
         <form method="POST">
             <div class="input-group">
-                <input name="username" type="text" placeholder="Designate Username" required autocomplete="off">
+                <label>Define Identity String</label>
+                <input name="username" type="text" placeholder="Enter Username" required autocomplete="off">
             </div>
             
             <div class="input-group">
-                <input name="password" type="password" placeholder="Set
+                <label>Set Security Clearance</label>
+                <input name="password" type="password" placeholder="Enter Password" required>
+            </div>
+            
+            <button type="submit">Execute Registration</button>
+        </form>
+
+        <div class="login-link">
+            ALREADY INITIALIZED? <a href="/">RETURN TO ACCESS PORT</a>
+        </div>
+    </div>
+
+</body>
+</html>
