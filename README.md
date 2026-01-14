@@ -88,9 +88,10 @@ Initialization:
 ````
     git clone https://github.com/yourusername/the-vault.git
     cd the-vault
-    ````
+````
 
 - Install dependencies:
+
 ````
     python3 -m venv venv
     source venv/bin/activate #Linux
@@ -99,19 +100,22 @@ Initialization:
 ````
 
 - Pm2 installation:
+
 ````
 npm install -g pm2
 ````
 
 Launch Sequence:
-````
 - Default directory:
+  ```
     python app.py
+  ```
 
 - Custom directory:
+  ```
     python app.py "C:\Users\Drac\Documents\SecretProjects"
     python app.py /home/drac/secret_projects
-````
+  ```
 Installation using Pm2:
 ````
 pm2 start venv/bin/python3 --name vault -- app.py
