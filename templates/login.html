@@ -12,6 +12,9 @@
             --dim-gray: #333;
         }
 
+        /* RESET & BASE */
+        * { box-sizing: border-box; } 
+        
         body {
             background-color: var(--bg-color);
             color: var(--terminal-green);
@@ -19,121 +22,57 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
+            padding: 20px;
+            overflow-x: hidden;
         }
 
-        /* The CRT Screen Effect */
+        /* CRT Screen Effect */
         body::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
+            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
+            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
         }
 
         .login-container {
             border: 2px solid var(--terminal-green);
             padding: 40px;
-            width: 350px;
+            width: 100%;       /* Fluid width */
+            max-width: 350px;  /* Cap at 350px */
             box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
             position: relative;
             z-index: 3;
             background: rgba(0, 0, 0, 0.9);
         }
 
-        h2 {
-            text-align: center;
-            border-bottom: 1px dashed var(--terminal-green);
-            padding-bottom: 10px;
-            margin-top: 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+        h2 { text-align: center; border-bottom: 1px dashed var(--terminal-green); padding-bottom: 10px; margin-top: 0; text-transform: uppercase; letter-spacing: 2px; }
 
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
+        .input-group { margin-bottom: 20px; position: relative; }
+        
         input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--dim-gray);
-            color: var(--terminal-green);
-            font-family: inherit;
-            font-size: 16px;
-            padding: 10px 0;
-            outline: none;
-            transition: border-color 0.3s;
+            width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--dim-gray);
+            color: var(--terminal-green); font-family: inherit; font-size: 16px; padding: 10px 0; outline: none; transition: border-color 0.3s;
         }
-
-        input:focus {
-            border-bottom: 1px solid var(--terminal-green);
-        }
-
-        input::placeholder {
-            color: #444;
-            text-transform: uppercase;
-        }
+        input:focus { border-bottom: 1px solid var(--terminal-green); }
+        input::placeholder { color: #444; text-transform: uppercase; }
 
         button {
-            width: 100%;
-            padding: 12px;
-            background: transparent;
-            border: 1px solid var(--terminal-green);
-            color: var(--terminal-green);
-            font-family: inherit;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
+            width: 100%; padding: 12px; background: transparent; border: 1px solid var(--terminal-green);
+            color: var(--terminal-green); font-family: inherit; font-weight: bold; text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s ease; margin-top: 10px;
         }
+        button:hover { background: var(--terminal-green); color: var(--bg-color); box-shadow: 0 0 15px var(--terminal-green); }
 
-        button:hover {
-            background: var(--terminal-green);
-            color: var(--bg-color);
-            box-shadow: 0 0 15px var(--terminal-green);
-        }
+        .error-message { color: var(--error-red); font-size: 0.9em; text-align: center; margin-bottom: 15px; border: 1px solid var(--error-red); padding: 5px; }
+        .links { margin-top: 20px; text-align: center; font-size: 0.8em; }
+        a { color: #666; text-decoration: none; transition: color 0.3s; }
+        a:hover { color: var(--terminal-green); }
 
-        .error-message {
-            color: var(--error-red);
-            font-size: 0.9em;
-            text-align: center;
-            margin-bottom: 15px;
-            border: 1px solid var(--error-red);
-            padding: 5px;
-        }
-
-        .links {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 0.8em;
-        }
-
-        a {
-            color: #666;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        a:hover {
-            color: var(--terminal-green);
-        }
-
-        /* Scanline Animation */
-        @keyframes scanline {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100%); }
+        /* --- MOBILE OPTIMIZATION --- */
+        @media (max-width: 480px) {
+            .login-container { padding: 25px; }
+            h2 { font-size: 1.2em; }
         }
     </style>
 </head>
@@ -143,20 +82,16 @@
         <h2>System Auth</h2>
 
         {% if error %}
-            <div class="error-message">
-                [ERROR]: {{ error }}
-            </div>
+            <div class="error-message">[ERROR]: {{ error }}</div>
         {% endif %}
 
         <form method="POST">
             <div class="input-group">
                 <input name="username" type="text" placeholder="Identity String" required autocomplete="off">
             </div>
-            
             <div class="input-group">
                 <input name="password" type="password" placeholder="Access Key" required>
             </div>
-            
             <button type="submit">Establish Link</button>
         </form>
 

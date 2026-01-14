@@ -15,19 +15,19 @@
             --glass-black: rgba(0, 0, 0, 0.95);
         }
 
+        * { box-sizing: border-box; }
+
         body {
             background-color: var(--bg-color);
             color: var(--terminal-green);
             font-family: 'Courier New', Courier, monospace;
-            padding: 40px;
+            padding: 20px; /* Reduced from 40px for better mobile use */
             margin: 0;
             min-height: 100vh;
         }
 
-        /* Scanlines */
         body::before {
-            content: " ";
-            display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             z-index: 999; pointer-events: none; background-size: 100% 2px, 3px 100%;
         }
@@ -38,67 +38,84 @@
             position: relative; z-index: 1;
         }
 
+        /* Responsive Header */
         .header {
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 2px dashed var(--terminal-green); padding-bottom: 15px; margin-bottom: 20px;
+            flex-wrap: wrap; gap: 10px;
         }
 
         .path-bar {
             background: var(--dim-gray); color: #fff; padding: 10px; font-size: 0.9em;
             margin-bottom: 20px; border-left: 3px solid var(--terminal-green);
             display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 10px; word-break: break-all; /* Prevents long paths from breaking layout */
         }
 
-        /* ACTIONS ZONE */
-        .controls { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start; }
-        .upload-box { flex-grow: 2; border: 1px solid var(--terminal-dim); padding: 15px; display: flex; gap: 15px; }
+        /* Responsive Controls */
+        .controls { 
+            display: flex; gap: 15px; margin-bottom: 20px; align-items: stretch;
+            flex-wrap: wrap; /* Allows wrapping on tablets */
+        }
+        
+        .upload-box { 
+            flex-grow: 2; border: 1px solid var(--terminal-dim); padding: 15px; 
+            display: flex; gap: 15px; min-width: 280px; 
+        }
+        
         .upload-column { flex: 1; display: flex; flex-direction: column; }
         .upload-label { color: var(--terminal-dim); font-size: 0.7em; margin-bottom: 5px; text-transform: uppercase; }
         .divider { width: 1px; background: var(--terminal-dim); }
-        .nuke-box { flex-grow: 0; border: 1px solid var(--error-red); padding: 15px; display: flex; flex-direction: column; justify-content: center; }
+        
+        .nuke-box { 
+            flex-grow: 0; border: 1px solid var(--error-red); padding: 15px; 
+            display: flex; flex-direction: column; justify-content: center; min-width: 100px; flex: 1;
+        }
 
         button { border: none; padding: 10px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: inherit; transition: all 0.2s; width: 100%; }
-
         .btn-upload { background: var(--terminal-green); color: black; margin-top: auto; }
         .btn-upload:hover { box-shadow: 0 0 10px var(--terminal-green); }
-
         .btn-nuke { background: transparent; color: var(--error-red); border: 1px solid var(--error-red); }
         .btn-nuke:hover { background: var(--error-red); color: black; box-shadow: 0 0 10px var(--error-red); }
 
-        /* ITEM ACTIONS */
         .btn-group { display: flex; gap: 5px; margin-top: 5px; }
         .btn-retrieve { background: transparent; color: var(--terminal-cyan); border: 1px solid var(--terminal-cyan); padding: 2px 5px; font-size: 0.7em; flex: 1; }
         .btn-retrieve:hover { background: var(--terminal-cyan); color: black; box-shadow: 0 0 8px var(--terminal-cyan); }
         .btn-del-mini { background: transparent; color: var(--error-red); border: 1px solid var(--error-red); padding: 2px 5px; font-size: 0.7em; flex: 1; }
         .btn-del-mini:hover { background: var(--error-red); color: white; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
         .item-card { border: 1px solid var(--dim-gray); padding: 10px; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
         .item-card:hover { border-color: var(--terminal-green); background: rgba(0, 255, 65, 0.05); }
-        .item-link { text-decoration: none; color: var(--terminal-green); overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
+        .item-link { text-decoration: none; color: var(--terminal-green); overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; word-break: break-all; font-size: 0.9em; }
         .folder-link { color: #fff; font-weight: bold; }
         .icon { font-size: 2.5em; display: block; margin-bottom: 5px; }
         .back-btn { color: var(--terminal-green); text-decoration: none; font-weight: bold; }
-
         .uploader-tag { font-size: 0.6em; color: var(--terminal-dim); text-transform: uppercase; margin-bottom: 10px; display: block; }
 
-        /* --- PROGRESS MODAL CSS --- */
-        #progress-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9); z-index: 2000;
-            justify-content: center; align-items: center; flex-direction: column;
-        }
-        .progress-box { width: 400px; padding: 20px; border: 2px solid var(--terminal-green); background: #000; box-shadow: 0 0 30px var(--terminal-green); text-align: center; }
+        /* --- RESPONSIVE MODAL --- */
+        #progress-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        .progress-box { width: 100%; max-width: 400px; padding: 20px; border: 2px solid var(--terminal-green); background: #000; box-shadow: 0 0 30px var(--terminal-green); text-align: center; }
         .progress-title { color: var(--terminal-green); margin-bottom: 15px; font-size: 1.2em; text-transform: uppercase; letter-spacing: 2px; animation: blink 1s infinite; }
         .progress-bar-container { width: 100%; height: 20px; background: #111; border: 1px solid var(--dim-gray); margin-bottom: 10px; position: relative; }
         #progress-fill { height: 100%; background: var(--terminal-green); width: 0%; transition: width 0.1s linear; }
         #progress-text { color: #fff; font-size: 0.9em; margin-bottom: 15px; }
-        
         .btn-cancel { background: var(--error-red); color: white; border: none; padding: 10px; font-weight: bold; cursor: pointer; width: 100%; }
         .btn-cancel:hover { background: #ff0000; box-shadow: 0 0 10px var(--error-red); }
-
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
+        /* --- MOBILE MEDIA QUERY (Phones < 768px) --- */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .header { flex-direction: row; }
+            .controls { flex-direction: column; } /* Stack Upload and Nuke blocks vertically */
+            
+            /* On very small screens, stack the two upload forms vertically */
+            @media (max-width: 500px) {
+                .upload-box { flex-direction: column; }
+                .divider { width: 100%; height: 1px; margin: 10px 0; }
+            }
+        }
     </style>
 </head>
 <body>
@@ -112,7 +129,7 @@
         <div class="path-bar">
             <span>SECTOR: /{{ current_path }}</span>
             {% if parent is not none %}
-                <a href="{{ url_for('dashboard', req_path=parent) }}" class="back-btn">&lt;&lt; ASCEND LEVEL</a>
+                <a href="{{ url_for('dashboard', req_path=parent) }}" class="back-btn">&lt;&lt; ASCEND</a>
             {% endif %}
         </div>
 
@@ -156,12 +173,12 @@
                     <form onsubmit="handleRetrieve(event, this)" style="flex:1;">
                         <input type="hidden" name="current_path" value="{{ current_path }}">
                         <input type="hidden" name="item_name" value="{{ folder.name }}">
-                        <button type="submit" class="btn-retrieve">[ RETRIEVE ]</button>
+                        <button type="submit" class="btn-retrieve">[ GET ]</button>
                     </form>
                     <form action="/delete" method="post" onsubmit="return confirmDelete('{{ folder.name }}')" style="flex:1;">
                         <input type="hidden" name="current_path" value="{{ current_path }}">
                         <input type="hidden" name="item_name" value="{{ folder.name }}">
-                        <button type="submit" class="btn-del-mini">[ DELETE ]</button>
+                        <button type="submit" class="btn-del-mini">[ DEL ]</button>
                     </form>
                 </div>
             </div>
@@ -179,12 +196,12 @@
                     <form onsubmit="handleRetrieve(event, this)" style="flex:1;">
                         <input type="hidden" name="current_path" value="{{ current_path }}">
                         <input type="hidden" name="item_name" value="{{ file.name }}">
-                        <button type="submit" class="btn-retrieve">[ RETRIEVE ]</button>
+                        <button type="submit" class="btn-retrieve">[ GET ]</button>
                     </form>
                     <form action="/delete" method="post" onsubmit="return confirmDelete('{{ file.name }}')" style="flex:1;">
                         <input type="hidden" name="current_path" value="{{ current_path }}">
                         <input type="hidden" name="item_name" value="{{ file.name }}">
-                        <button type="submit" class="btn-del-mini">[ DELETE ]</button>
+                        <button type="submit" class="btn-del-mini">[ DEL ]</button>
                     </form>
                 </div>
             </div>
@@ -229,7 +246,7 @@
             activeXHR.upload.onprogress = function(e) {
                 if (e.lengthComputable) {
                     let percent = (e.loaded / e.total) * 100;
-                    updateProgress(percent, "UPLOADING PACKETS: " + Math.round(percent) + "%");
+                    updateProgress(percent, "UPLOADING: " + Math.round(percent) + "%");
                 }
             };
 
@@ -295,7 +312,6 @@
                 activeXHR.abort();
                 updateProgress(0, "SEQUENCE ABORTED BY USER");
                 setTimeout(hideModal, 1000);
-                // The server will see the disconnect and the .part file will NOT be renamed.
             }
         }
 
