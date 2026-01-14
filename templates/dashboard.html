@@ -1,12 +1,248 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURE VAULT // MAIN</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --terminal-green: #00ff41;
+            --terminal-dim: #008f11;
+            --error-red: #ff3333;
+            --dim-gray: #333;
+            --glass-black: rgba(0, 0, 0, 0.9);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--terminal-green);
+            font-family: 'Courier New', Courier, monospace;
+            padding: 40px;
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        /* CRT Screen Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 999;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .dashboard-container {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 2px solid var(--terminal-green);
+            padding: 20px;
+            background: var(--glass-black);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px dashed var(--terminal-green);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.5em;
+        }
+
+        .user-badge {
+            font-size: 0.8em;
+            background: var(--terminal-dim);
+            color: #000;
+            padding: 5px 10px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            color: var(--error-red);
+            text-decoration: none;
+            border: 1px solid var(--error-red);
+            padding: 5px 15px;
+            transition: all 0.3s;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+
+        .logout-btn:hover {
+            background: var(--error-red);
+            color: #000;
+            box-shadow: 0 0 10px var(--error-red);
+        }
+
+        /* Upload Section */
+        .upload-section {
+            border: 1px solid var(--dim-gray);
+            padding: 20px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .upload-section::before {
+            content: "[ DATA TRANSMISSION PROTOCOL ]";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: var(--bg-color);
+            padding: 0 10px;
+            color: var(--dim-gray);
+            font-size: 0.8em;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            color: var(--terminal-green);
+            font-family: inherit;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid var(--terminal-green);
+            color: var(--terminal-green);
+            padding: 10px 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: var(--terminal-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--terminal-green);
+        }
+
+        /* File Directory Table */
+        h3 {
+            text-transform: uppercase;
+            font-size: 1em;
+            margin-bottom: 15px;
+            color: var(--terminal-dim);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        th {
+            text-align: left;
+            border-bottom: 1px solid var(--terminal-green);
+            padding: 10px;
+            color: var(--terminal-dim);
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--dim-gray);
+            transition: background 0.2s;
+        }
+
+        tr:hover td {
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        .file-name {
+            color: #fff;
+        }
+
+        .download-link {
+            color: var(--terminal-green);
+            text-decoration: none;
+            border: 1px solid var(--terminal-green);
+            padding: 2px 8px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+
+        .download-link:hover {
+            background: var(--terminal-green);
+            color: #000;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--dim-gray);
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
-    <h2>Welcome {{ user }}</h2>
-    <p>Your private file cloud is alive.</p>
 
-    <a href="/logout">Logout</a>
+    <div class="dashboard-container">
+        <div class="header">
+            <div>
+                <h2>Secure Vault</h2>
+                <span class="user-badge">OPERATOR: {{ user }}</span>
+            </div>
+            <a href="/logout" class="logout-btn">Terminate Session</a>
+        </div>
+        
+        <div class="upload-section">
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <button type="submit">Execute Upload</button>
+            </form>
+        </div>
+
+        <h3>// DIRECTORY LISTING</h3>
+        
+        {% if files %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td class="file-name">{{ file }}</td>
+                    <td style="color: var(--terminal-dim);">SECURE</td>
+                    <td><a href="{{ url_for('download_file', filename=file) }}" class="download-link">[ RETRIEVE ]</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <div class="empty-state">
+                > NO ARTIFACTS FOUND IN SECTOR.<br>
+                > WAITING FOR DATA INJECTION...
+            </div>
+        {% endif %}
+    </div>
+
 </body>
 </html>
