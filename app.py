@@ -5,15 +5,14 @@ import sqlite3
 import os
 import sys
 import shutil
-import tempfile # For creating temporary zip files
+import tempfile
+import time
 
 app = Flask(__name__)
 app.secret_key = "change-this-to-something-wild-drac"
 
 # --- Configuration ---
 DB_NAME = "users.db"
-
-# DEFAULT: If you don't provide a folder argument, we use 'uploads'
 BASE_DIR = os.path.abspath("uploads")
 
 if len(sys.argv) > 1:
@@ -36,6 +35,7 @@ def get_db():
 def init_db():
     conn = get_db()
     c = conn.cursor()
+    # Users Table
     c.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,12 +43,22 @@ def init_db():
             password TEXT
         )
     """)
+    # Metadata Table (Tracks who uploaded what)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS file_metadata (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filepath TEXT,
+            filename TEXT,
+            uploader TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     conn.commit()
     conn.close()
 
 init_db()
 
-# --- Security Gate ---
+# --- Helpers ---
 def login_required(f):
     def wrapper(*args, **kwargs):
         if "user_id" not in session:
@@ -56,6 +66,24 @@ def login_required(f):
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__
     return wrapper
+
+def save_metadata(rel_path, filename, uploader):
+    try:
+        conn = get_db()
+        # Remove old entry if it exists (overwrite logic)
+        conn.execute("DELETE FROM file_metadata WHERE filepath=? AND filename=?", (rel_path, filename))
+        conn.execute("INSERT INTO file_metadata (filepath, filename, uploader) VALUES (?, ?, ?)", 
+                     (rel_path, filename, uploader))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Metadata Error: {e}")
+
+def get_metadata_map(rel_path):
+    conn = get_db()
+    rows = conn.execute("SELECT filename, uploader FROM file_metadata WHERE filepath=?", (rel_path,)).fetchall()
+    conn.close()
+    return {row['filename']: row['uploader'] for row in rows}
 
 # --- Routes ---
 
@@ -96,27 +124,34 @@ def register():
 def dashboard(req_path):
     abs_path = os.path.join(BASE_DIR, req_path)
     
-    # Security Check
     if not os.path.commonprefix([abs_path, BASE_DIR]) == BASE_DIR:
         return abort(404)
 
-    # If it's a file, we usually download it, but let's keep the dashboard logic purely for navigation here
     if os.path.isfile(abs_path):
          return send_from_directory(os.path.dirname(abs_path), os.path.basename(abs_path))
 
     if not os.path.exists(abs_path):
         return abort(404)
 
+    # Get Metadata for this folder
+    meta_map = get_metadata_map(req_path)
+
     items = os.listdir(abs_path)
     folders = []
     files = []
     
     for item in items:
+        # Hide the temporary partial files from the view
+        if item.endswith(".part"):
+            continue
+
         item_path = os.path.join(abs_path, item)
+        uploader = meta_map.get(item, "Unknown") # Default to Unknown if not in DB
+
         if os.path.isdir(item_path):
-            folders.append(item)
+            folders.append({'name': item, 'uploader': uploader})
         else:
-            files.append(item)
+            files.append({'name': item, 'uploader': uploader})
 
     parent = os.path.dirname(req_path) if req_path else None
 
@@ -143,6 +178,7 @@ def upload_file():
         return redirect(url_for('dashboard', req_path=current_path))
     
     files = request.files.getlist('file')
+    uploader = session["username"]
     
     for file in files:
         if file.filename == '':
@@ -153,12 +189,57 @@ def upload_file():
         safe_rel_path = os.path.join(*safe_parts)
         full_dest_path = os.path.join(target_dir, safe_rel_path)
         
-        os.makedirs(os.path.dirname(full_dest_path), exist_ok=True)
-        file.save(full_dest_path)
+        # Determine the directory of the file (for metadata relative path)
+        file_dir_rel = os.path.dirname(safe_rel_path)
+        # If it's a folder upload, we want to tag the root folder? 
+        # Actually, let's just tag the file itself.
+        # But we need to store metadata relative to the dashboard view.
+        # If I upload Folder/File.txt, dashboard at / sees "Folder".
+        # Let's tag the specific file.
+        # Ideally, we tag the root folder too.
+        
+        # 1. ATOMIC SAVE PROTOCOL
+        temp_path = full_dest_path + ".part"
+        
+        try:
+            os.makedirs(os.path.dirname(full_dest_path), exist_ok=True)
+            file.save(temp_path)
+            
+            # If we reached here, upload is complete and valid.
+            # Rename .part to real name
+            if os.path.exists(full_dest_path):
+                os.remove(full_dest_path) # Overwrite existing
+            os.rename(temp_path, full_dest_path)
+            
+            # 2. METADATA TAGGING
+            # We tag the file itself
+            # We need the relative path of the file w.r.t BASE_DIR + current_path?
+            # No, w.r.t the folder it sits in.
+            
+            # For the dashboard to see it:
+            # If I am at /dashboard/Sub, and file is at /Sub/file.txt
+            # DB needs: filepath="Sub", filename="file.txt"
+            
+            # Calculate where this file lives relative to BASE_DIR
+            actual_rel_dir = os.path.join(current_path, os.path.dirname(safe_rel_path))
+            # Normalize path separators
+            actual_rel_dir = actual_rel_dir.replace("\\", "/").strip("/")
+            
+            save_metadata(actual_rel_dir, os.path.basename(full_dest_path), uploader)
+
+            # Also tag the top-level folder if it's a folder upload
+            if len(safe_parts) > 1:
+                top_folder = safe_parts[0]
+                save_metadata(current_path, top_folder, uploader)
+
+        except Exception as e:
+            print(f"Upload Failed: {e}")
+            # CLEANUP CORRUPTED FILE
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     return redirect(url_for('dashboard', req_path=current_path))
 
-# --- RETRIEVAL PROTOCOLS (Download) ---
 @app.route("/retrieve", methods=["POST"])
 @login_required
 def retrieve_item():
@@ -167,38 +248,27 @@ def retrieve_item():
     
     target_path = os.path.join(BASE_DIR, current_path, item_name)
     
-    # Security: Stay inside BASE_DIR
     if not os.path.commonprefix([target_path, BASE_DIR]) == BASE_DIR:
         abort(403)
 
     if not os.path.exists(target_path):
         abort(404)
 
-    # 1. If it's a FILE, just send it
     if os.path.isfile(target_path):
         return send_from_directory(os.path.dirname(target_path), os.path.basename(target_path), as_attachment=True)
     
-    # 2. If it's a FOLDER, zip it first
     elif os.path.isdir(target_path):
-        # Create a temp directory to store the zip
         temp_dir = tempfile.mkdtemp()
         try:
-            # Create zip file name (e.g., MyFolder.zip)
             zip_name = f"{item_name}"
             zip_path = os.path.join(temp_dir, zip_name)
-            
-            # Make the archive (shutil automatically adds .zip extension)
             shutil.make_archive(zip_path, 'zip', target_path)
-            
-            # Send the zip file
             return send_file(f"{zip_path}.zip", as_attachment=True, download_name=f"{item_name}.zip")
         except Exception as e:
-            print(f"Error zipping: {e}")
             abort(500)
             
     return redirect(url_for('dashboard', req_path=current_path))
 
-# --- DESTRUCTION PROTOCOLS ---
 @app.route("/delete", methods=["POST"])
 @login_required
 def delete_item():
@@ -214,6 +284,12 @@ def delete_item():
             shutil.rmtree(target_path)
         else:
             os.remove(target_path)
+            
+        # DELETE METADATA
+        conn = get_db()
+        conn.execute("DELETE FROM file_metadata WHERE filepath=? AND filename=?", (current_path, item_name))
+        conn.commit()
+        conn.close()
             
     return redirect(url_for('dashboard', req_path=current_path))
 
@@ -233,6 +309,12 @@ def delete_all():
                 shutil.rmtree(item_path)
             else:
                 os.remove(item_path)
+        
+        # Wipe metadata for this sector
+        conn = get_db()
+        conn.execute("DELETE FROM file_metadata WHERE filepath=?", (current_path,))
+        conn.commit()
+        conn.close()
 
     return redirect(url_for('dashboard', req_path=current_path))
 
