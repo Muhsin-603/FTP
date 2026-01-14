@@ -3,95 +3,151 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 export default function Dashboard() {
-  const [folders, setFolders] = useState(['TOP_SECRET', 'Blueprints', 'Evidence']);
-  const [files, setFiles] = useState(['passwords.txt', 'mission_brief.log']);
+  const [folders, setFolders] = useState([
+    { name: 'TOP_SECRET', uploader: 'admin' },
+    { name: 'Blueprints', uploader: 'neo_anderson' },
+    { name: 'Evidence', uploader: 'agent_007' }
+  ]);
+  
+  const [files, setFiles] = useState([
+    { name: 'passwords.txt', uploader: 'agent_007' },
+    { name: 'mission_brief.log', uploader: 'root_master' }
+  ]);
+
+  // 2. Modal State
+  const [modal, setModal] = useState({ open: false, title: '', progress: 0, status: '' });
+
+  // 3. Simulation Function (Mimics XHR)
+  const simulateAction = (title, startText) => {
+    setModal({ open: true, title: title, progress: 0, status: startText });
+    
+    let p = 0;
+    const interval = setInterval(() => {
+      p += Math.floor(Math.random() * 15);
+      if (p >= 100) {
+        p = 100;
+        clearInterval(interval);
+        setModal(prev => ({ ...prev, progress: 100, status: 'COMPLETE' }));
+        setTimeout(() => setModal({ open: false, title: '', progress: 0, status: '' }), 1000);
+      } else {
+        setModal(prev => ({ ...prev, progress: p, status: `PROCESSING PACKETS: ${p}%` }));
+      }
+    }, 300);
+  };
+
+  const handleUpload = () => simulateAction('TRANSMITTING TO CORE', 'INITIALIZING UPLOAD...');
+  const handleRetrieve = (name) => simulateAction('RECEIVING DATA STREAM', `DOWNLOADING ${name}...`);
+  const handleDelete = (name) => confirm(`Delete ${name}?`) && alert('Deleted (Simulation)');
 
   return (
-    <div className="min-h-screen p-4 sm:p-10 relative z-10">
-      <style jsx>{`
-        .dash-container {
-          max-width: 900px; margin: 0 auto; border: 2px solid var(--terminal-green);
-          padding: 20px; background: var(--glass-black); box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
-        }
-        .header { border-bottom: 2px dashed var(--terminal-green); padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .controls { display: flex; gap: 15px; margin-bottom: 20px; }
-        .upload-box { flex-grow: 2; border: 1px solid var(--terminal-dim); padding: 15px; display: flex; gap: 15px; }
-        .nuke-box { border: 1px solid var(--error-red); padding: 15px; display: flex; flex-direction: column; justify-content: center; }
-        
-        /* Buttons */
-        .btn-upload { background: var(--terminal-green); color: black; border: none; padding: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: auto;}
-        .btn-nuke { background: transparent; color: var(--error-red); border: 1px solid var(--error-red); padding: 10px; font-weight: bold; cursor: pointer; height: 100%; }
-        .btn-nuke:hover { background: var(--error-red); color: black; box-shadow: 0 0 10px var(--error-red); }
-
-        /* Grid */
-        .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-        .item-card { border: 1px solid var(--dim-gray); padding: 10px; text-align: center; transition: 0.2s; display: flex; flex-direction: column; }
-        .item-card:hover { border-color: var(--terminal-green); background: rgba(0, 255, 65, 0.05); }
-
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-          .controls { flex-direction: column; }
-          .upload-box { flex-direction: column; }
-          .nuke-box { width: 100%; }
-          .btn-nuke { width: 100%; min-height: 50px; }
-        }
-      `}</style>
-
+    <div className="p-4 sm:p-10 min-h-screen relative z-10">
+      
       <div className="dash-container">
-        <div className="header">
+        
+        <div className="dash-header">
           <h3 className="text-lg">VAULT // AGENT_007</h3>
-          <Link href="/" className="text-[#ff3333] hover:underline">[ TERMINATE ]</Link>
+          <Link href="/" style={{ color: 'var(--error-red)' }} className="hover:underline">
+            [ TERMINATE ]
+          </Link>
         </div>
 
-        <div className="bg-[#333] text-white p-2 text-sm mb-5 border-l-4 border-[#00ff41] flex justify-between items-center">
+        <div className="sector-bar">
           <span>SECTOR: /root</span>
         </div>
 
-        <div className="controls">
-          <div className="upload-box">
-            <div className="flex-1 flex flex-col">
-              <span className="text-[#008f11] text-xs uppercase mb-1">Standard Transmission</span>
-              <input type="file" className="text-[#00ff41] text-xs mb-2" />
-              <button className="btn-upload">UPLOAD FILES</button>
+        <div className="controls-wrapper">
+          <div className="upload-panel">
+            <div className="upload-col">
+              <span className="upload-label">Standard Transmission</span>
+              <input type="file" style={{ color: 'var(--terminal-green)', fontSize: '0.75rem', marginBottom: '8px' }} />
+              <button className="btn-upload" onClick={handleUpload}>UPLOAD FILES</button>
             </div>
-            <div className="w-[1px] bg-[#008f11] hidden sm:block"></div>
-            <div className="flex-1 flex flex-col">
-              <span className="text-[#008f11] text-xs uppercase mb-1">Structure Injection</span>
-              <input type="file" webkitdirectory="" className="text-[#00ff41] text-xs mb-2" />
-              <button className="btn-upload">UPLOAD FOLDER</button>
+            
+            <div className="hidden sm:block" style={{ width: '1px', background: 'var(--terminal-dim)' }}></div>
+            
+            <div className="upload-col">
+              <span className="upload-label">Structure Injection</span>
+              <input type="file" webkitdirectory="" style={{ color: 'var(--terminal-green)', fontSize: '0.75rem', marginBottom: '8px' }} />
+              <button className="btn-upload" onClick={handleUpload}>UPLOAD FOLDER</button>
             </div>
           </div>
 
-          <div className="nuke-box">
-            <button className="btn-nuke" onClick={() => confirm('PURGE SECTOR?')}>PURGE<br/>SECTOR</button>
+          <div className="purge-panel">
+            <button 
+              onClick={() => confirm('WARNING: INCINERATE SECTOR?')}
+              className="btn-purge"
+            >
+              PURGE<br/>SECTOR
+            </button>
           </div>
         </div>
-        <div className="grid-layout">
+        <div className="grid-files">
           {folders.map(folder => (
-            <div key={folder} className="item-card">
-              <Link href="#" className="text-white font-bold block mb-2">
-                <span className="text-4xl block mb-1">📂</span>
-                {folder}
-              </Link>
-              <button className="text-[#ff3333] border border-[#ff3333] text-xs hover:bg-[#ff3333] hover:text-white px-1 py-1 mt-auto">
-                [ DELETE ]
-              </button>
+            <div key={folder.name} className="file-card">
+              <div>
+                <Link href="#" className="text-white font-bold block mb-2">
+                  <span className="text-4xl block mb-1">📂</span>
+                  {folder.name}
+                </Link>
+                <span className="uploader-tag">OWNER: {folder.uploader}</span>
+              </div>
+              
+              <div className="btn-group">
+                <button onClick={() => handleRetrieve(folder.name)} className="btn-retrieve">
+                  [ RETRIEVE ]
+                </button>
+                <button onClick={() => handleDelete(folder.name)} className="btn-del-mini">
+                  [ DELETE ]
+                </button>
+              </div>
             </div>
           ))}
 
           {files.map(file => (
-            <div key={file} className="item-card">
-              <Link href="#" className="text-[#00ff41] block mb-2 break-all">
-                <span className="text-4xl block mb-1">📄</span>
-                {file}
-              </Link>
-              <button className="text-[#ff3333] border border-[#ff3333] text-xs hover:bg-[#ff3333] hover:text-white px-1 py-1 mt-auto">
-                [ DELETE ]
-              </button>
+            <div key={file.name} className="file-card">
+              <div>
+                <Link href="#" className="block mb-2 break-all" style={{ color: 'var(--terminal-green)' }}>
+                  <span className="text-4xl block mb-1">📄</span>
+                  {file.name}
+                </Link>
+                <span className="uploader-tag">OWNER: {file.uploader}</span>
+              </div>
+
+              <div className="btn-group">
+                <button onClick={() => handleRetrieve(file.name)} className="btn-retrieve">
+                  [ RETRIEVE ]
+                </button>
+                <button onClick={() => handleDelete(file.name)} className="btn-del-mini">
+                  [ DELETE ]
+                </button>
+              </div>
             </div>
           ))}
         </div>
+        
+        {folders.length === 0 && files.length === 0 && (
+            <div className="text-center text-[#666] p-10 italic">
+                &gt; SECTOR EMPTY.<br/>
+                &gt; AWAITING DATA INPUT...
+            </div>
+        )}
       </div>
+
+      {modal.open && (
+        <div className="modal-overlay">
+          <div className="progress-box">
+            <div className="progress-title">{modal.title}</div>
+            <div className="progress-bar-container">
+              <div className="progress-fill" style={{ width: `${modal.progress}%` }}></div>
+            </div>
+            <div className="progress-text">{modal.status}</div>
+            <button className="btn-cancel" onClick={() => setModal({ ...modal, open: false })}>
+              [ ABORT SEQUENCE ]
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

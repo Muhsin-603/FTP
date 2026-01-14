@@ -5,20 +5,10 @@ export default function Register() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
       
-      {/* Uses the global .login-container class for the box, border, and glow */}
       <div className="login-container">
         <h2>Initialize Agent</h2>
 
-        {/* Unique "System Log" styling kept inline */}
-        <div style={{ 
-          fontSize: '0.75em', 
-          color: 'var(--terminal-dim)', 
-          marginBottom: '25px', 
-          borderLeft: '2px solid var(--terminal-dim)', 
-          paddingLeft: '10px', 
-          lineHeight: '1.4',
-          fontFamily: 'monospace'
-        }}>
+        <div className="system-logs">
           &gt; ALLOCATING SECTOR... OK<br/>
           &gt; ENCRYPTING KEYS... OK<br/>
           &gt; AWAITING USER CREDENTIALS_
@@ -42,9 +32,9 @@ export default function Register() {
           <button type="submit">Execute Registration</button>
         </form>
 
-        <div className="text-center mt-4" style={{ fontSize: '0.85em', letterSpacing: '1px' }}>
+        <div className="text-center mt-4" style={{ fontSize: '0.8em'}}>
           <span style={{ color: '#666' }}>ALREADY INITIALIZED?</span>{' '}
-          <Link href="/">RETURN TO ACCESS PORT</Link>
+          <Link className="terminal-link" href="/">RETURN TO ACCESS PORT</Link>
         </div>
       </div>
 

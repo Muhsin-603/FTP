@@ -5,6 +5,7 @@
   --dim-gray: #333;
   --error-red: #ff3333;
   --glass-black: rgba(0, 0, 0, 0.95);
+  --terminal-cyan: #00ffff;
 }
 
 * {
@@ -55,6 +56,17 @@ a:hover {
   color: var(--terminal-green);
 }
 
+a.terminal-link {
+  color: var(--terminal-green);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--terminal-green);
+  transition: all 0.3s;
+}
+
+a.terminal-link:hover {
+  background: var(--terminal-green);
+  color: #000;
+}
 .login-container {
   border: 2px solid var(--terminal-green);
   padding: 40px;
@@ -65,6 +77,16 @@ a:hover {
   position: relative;
   z-index: 3;
   background: rgba(0, 0, 0, 0.9);
+}
+
+.system-logs {
+  font-size: 0.75em;
+  color: var(--terminal-dim);
+  margin-bottom: 25px;
+  border-left: 2px solid var(--terminal-dim);
+  padding-left: 10px;
+  line-height: 1.4;
+  font-family: monospace;
 }
 
 .register-container {
@@ -137,3 +159,265 @@ button:hover, .btn:hover {
 
 .text-center { text-align: center; }
 .mt-4 { margin-top: 1.5rem; }
+
+.dash-container {
+  max-width: 900px;
+  margin: 0 auto;
+  border: 2px solid var(--terminal-green);
+  padding: 20px;
+  background: var(--glass-black);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+}
+
+.dash-header {
+  border-bottom: 2px dashed var(--terminal-green);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sector-bar {
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  margin-bottom: 20px;
+  border-left: 4px solid var(--terminal-green);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Control Panel (Uploads & Purge) */
+.controls-wrapper {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.upload-panel {
+  flex-grow: 2;
+  border: 1px solid var(--terminal-dim);
+  padding: 15px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.upload-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+}
+
+.upload-label {
+  color: var(--terminal-dim);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.purge-panel {
+  border: 1px solid var(--error-red);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 0;
+}
+
+/* File Grid */
+.grid-files {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 15px;
+}
+
+.file-card {
+  border: 1px solid var(--dim-gray);
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s;
+  background: rgba(0,0,0,0.2);
+}
+
+.file-card:hover {
+  border-color: var(--terminal-green);
+  background: rgba(0, 255, 65, 0.05);
+  transform: translateY(-2px);
+}
+
+/* Specific Button Styles */
+.btn-mini {
+  font-size: 0.75rem;
+  padding: 4px;
+  margin-top: auto;
+  background: transparent;
+  cursor: pointer;
+}
+
+.btn-upload {
+  background: var(--terminal-green);
+  color: black;
+  border: none;
+  padding: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  margin-top: auto;
+}
+
+.btn-upload:hover {
+  box-shadow: 0 0 10px var(--terminal-green);
+}
+
+.btn-purge {
+  background: transparent;
+  color: var(--error-red);
+  border: 1px solid var(--error-red);
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  height: 100%;
+  width: 100%;
+  transition: 0.3s;
+}
+
+.btn-purge:hover {
+  background: var(--error-red);
+  color: black;
+  box-shadow: 0 0 15px var(--error-red);
+}
+
+.btn-delete {
+  color: var(--error-red);
+  border: 1px solid var(--error-red);
+}
+
+.btn-delete:hover {
+  background: var(--error-red);
+  color: white;
+}
+
+.uploader-tag {
+  font-size: 0.6rem;
+  color: var(--terminal-dim);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.btn-group {
+  display: flex;
+  gap: 5px;
+  margin-top: auto;
+  width: 100%;
+}
+
+.btn-retrieve {
+  background: transparent;
+  color: var(--terminal-cyan);
+  border: 1px solid var(--terminal-cyan);
+  padding: 4px;
+  font-size: 0.7rem;
+  flex: 1;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-retrieve:hover {
+  background: var(--terminal-cyan);
+  color: black;
+  box-shadow: 0 0 8px var(--terminal-cyan);
+}
+
+.btn-del-mini {
+  background: transparent;
+  color: var(--error-red);
+  border: 1px solid var(--error-red);
+  padding: 4px;
+  font-size: 0.7rem;
+  flex: 1;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-del-mini:hover {
+  background: var(--error-red);
+  color: white;
+}
+
+/* --- PROGRESS MODAL --- */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.progress-box {
+  width: 90%;
+  max-width: 400px;
+  padding: 20px;
+  border: 2px solid var(--terminal-green);
+  background: #000;
+  box-shadow: 0 0 30px var(--terminal-green);
+  text-align: center;
+}
+
+.progress-title {
+  color: var(--terminal-green);
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  animation: blink 1s infinite;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 20px;
+  background: #111;
+  border: 1px solid #333;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--terminal-green);
+  transition: width 0.2s linear;
+}
+
+.progress-text {
+  color: #fff;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.btn-cancel {
+  background: var(--error-red);
+  color: white;
+  border: none;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-cancel:hover {
+  background: #ff0000;
+  box-shadow: 0 0 10px var(--error-red);
+}
+
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
