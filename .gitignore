@@ -1,0 +1,22 @@
+# --- The Crown Jewels (Secrets) ---
+users.db
+*.db
+*.sqlite3
+
+# --- The Cargo Hold (Heavy/Dynamic Files) ---
+uploads/
+static/uploads/
+
+# --- Python Junk (System Artifacts) ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# --- OS Junk (Because Macs and Windows leave trash everywhere) ---
+.DS_Store
+Thumbs.db

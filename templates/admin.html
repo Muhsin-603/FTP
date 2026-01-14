@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Throne Room</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background: #1a1a1a; color: #00ff00; padding: 20px; }
+        h2 { border-bottom: 2px solid #00ff00; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #333; padding: 12px; text-align: left; }
+        th { background: #333; }
+        .btn { padding: 5px 10px; text-decoration: none; color: black; font-weight: bold; }
+        .promote { background: #00ff00; }
+        .demote { background: #ff4444; }
+        .back-link { display: block; margin-top: 20px; color: #888; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h2>// ROOT ACCESS // USER MANAGEMENT</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u['id'] }}</td>
+                <td>{{ u['username'] }}</td>
+                <td>
+                    {% if u['is_admin'] %}
+                        <span style="color: #ff00ff;">[ADMIN]</span>
+                    {% else %}
+                        <span>[USER]</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if u['id'] != session['user_id'] %}
+                        {% if u['is_admin'] %}
+                            <a href="/admin/toggle/{{ u['id'] }}" class="btn demote">REVOKE POWER</a>
+                        {% else %}
+                            <a href="/admin/toggle/{{ u['id'] }}" class="btn promote">GRANT POWER</a>
+                        {% endif %}
+                    {% else %}
+                        <span style="color: #666;">(It's You)</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="/dashboard" class="back-link">&lt;&lt; Return to Vault Dashboard</a>
+</body>
+</html>
