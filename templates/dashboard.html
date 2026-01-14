@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECURE VAULT // BROWSER</title>
+    <title>SECURE VAULT // COMMAND</title>
     <style>
         :root {
             --bg-color: #0a0a0a;
             --terminal-green: #00ff41;
             --terminal-dim: #008f11;
             --dim-gray: #333;
+            --error-red: #ff3333;
             --glass-black: rgba(0, 0, 0, 0.95);
         }
 
@@ -25,109 +26,152 @@
         /* Scanlines */
         body::before {
             content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
+            display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 999;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
+            z-index: 999; pointer-events: none; background-size: 100% 2px, 3px 100%;
         }
 
         .container {
-            max-width: 900px;
-            margin: 0 auto;
-            border: 2px solid var(--terminal-green);
-            padding: 20px;
-            background: var(--glass-black);
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
-            position: relative;
-            z-index: 1;
+            max-width: 900px; margin: 0 auto; border: 2px solid var(--terminal-green);
+            padding: 20px; background: var(--glass-black); box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+            position: relative; z-index: 1;
         }
 
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px dashed var(--terminal-green);
-            padding-bottom: 15px; margin-bottom: 20px;
+            border-bottom: 2px dashed var(--terminal-green); padding-bottom: 15px; margin-bottom: 20px;
         }
 
-        .path-display {
-            background: var(--dim-gray); color: #fff;
-            padding: 5px 10px; font-size: 0.9em;
+        .path-bar {
+            background: var(--dim-gray); color: #fff; padding: 10px; font-size: 0.9em;
             margin-bottom: 20px; border-left: 3px solid var(--terminal-green);
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        /* Upload Zone */
-        .upload-section {
-            border: 1px solid var(--terminal-dim); padding: 15px;
-            margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;
+        /* ACTIONS ZONE */
+        .controls {
+            display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start;
+        }
+
+        .upload-box {
+            flex-grow: 1; border: 1px solid var(--terminal-dim); padding: 15px;
+        }
+
+        .nuke-box {
+            border: 1px solid var(--error-red); padding: 15px;
         }
 
         button {
-            background: var(--terminal-green); color: black;
-            border: none; padding: 10px 20px; font-weight: bold; cursor: pointer;
-            text-transform: uppercase;
+            border: none; padding: 10px 15px; font-weight: bold; cursor: pointer;
+            text-transform: uppercase; font-family: inherit; transition: all 0.2s;
         }
 
-        /* File List */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .btn-upload { background: var(--terminal-green); color: black; }
+        .btn-upload:hover { box-shadow: 0 0 10px var(--terminal-green); }
 
-        .item {
-            border: 1px solid var(--dim-gray); padding: 15px; text-align: center;
-            transition: all 0.2s; text-decoration: none; color: var(--terminal-green);
-            display: block; overflow: hidden; text-overflow: ellipsis;
+        .btn-nuke { background: transparent; color: var(--error-red); border: 1px solid var(--error-red); }
+        .btn-nuke:hover { background: var(--error-red); color: black; box-shadow: 0 0 10px var(--error-red); }
+
+        .btn-del-mini {
+            background: transparent; color: var(--error-red); border: 1px solid var(--error-red);
+            padding: 2px 5px; font-size: 0.7em; margin-top: 5px; width: 100%;
         }
+        .btn-del-mini:hover { background: var(--error-red); color: white; }
 
-        .item:hover { background: rgba(0, 255, 65, 0.1); border-color: var(--terminal-green); }
+        /* GRID LAYOUT */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
 
-        .folder { color: #fff; font-weight: bold; border-color: var(--terminal-dim); }
-        .icon { font-size: 2em; display: block; margin-bottom: 5px; }
+        .item-card {
+            border: 1px solid var(--dim-gray); padding: 10px; text-align: center;
+            transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .item-card:hover { border-color: var(--terminal-green); background: rgba(0, 255, 65, 0.05); }
 
-        .back-btn { margin-right: 10px; color: var(--terminal-green); text-decoration: none; }
+        .item-link { text-decoration: none; color: var(--terminal-green); overflow: hidden; text-overflow: ellipsis; }
+        .folder-link { color: #fff; font-weight: bold; }
+        
+        .icon { font-size: 2.5em; display: block; margin-bottom: 5px; }
+        
+        .back-btn { color: var(--terminal-green); text-decoration: none; font-weight: bold; }
+
     </style>
+    <script>
+        function confirmNuke() {
+            return confirm("WARNING: You are about to INCINERATE all data in this sector.\n\nThis action cannot be undone.\n\nProceed?");
+        }
+        function confirmDelete(itemName) {
+            return confirm("Confirm deletion of protocol: " + itemName + "?");
+        }
+    </script>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <h3>SECURE VAULT // {{ user }}</h3>
-            <a href="/logout" style="color: #ff3333;">[ LOGOUT ]</a>
+            <h3>VAULT // {{ user }}</h3>
+            <a href="/logout" style="color: var(--error-red); text-decoration: none;">[ TERMINATE ]</a>
         </div>
 
-        <div class="path-display">
-            PATH: /{{ current_path }}
+        <div class="path-bar">
+            <span>SECTOR: /{{ current_path }}</span>
+            {% if parent is not none %}
+                <a href="{{ url_for('dashboard', req_path=parent) }}" class="back-btn">&lt;&lt; ASCEND LEVEL</a>
+            {% endif %}
         </div>
 
-        <div class="upload-section">
-            <form action="/upload" method="post" enctype="multipart/form-data" style="width: 100%;">
-                <input type="hidden" name="current_path" value="{{ current_path }}">
-                
-                <input type="file" name="file" multiple webkitdirectory>
-                <button type="submit">UPLOAD TO SECTOR</button>
-            </form>
-        </div>
+        <div class="controls">
+            <div class="upload-box">
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="current_path" value="{{ current_path }}">
+                    <input type="file" name="file" multiple webkitdirectory style="color: var(--terminal-green); margin-bottom: 10px;">
+                    <button type="submit" class="btn-upload">INITIATE UPLOAD</button>
+                </form>
+            </div>
 
-        {% if parent is not none %}
-        <div style="margin-bottom: 15px;">
-            <a href="{{ url_for('dashboard', req_path=parent) }}" class="back-btn">&lt;&lt; RETURN TO PARENT DIRECTORY</a>
+            <div class="nuke-box">
+                <form action="/delete-all" method="post" onsubmit="return confirmNuke()">
+                    <input type="hidden" name="current_path" value="{{ current_path }}">
+                    <button type="submit" class="btn-nuke">PURGE SECTOR</button>
+                </form>
+            </div>
         </div>
-        {% endif %}
 
         <div class="grid">
             {% for folder in folders %}
-            <a href="{{ url_for('dashboard', req_path=(current_path + '/' + folder) if current_path else folder) }}" class="item folder">
-                <span class="icon">📂</span>
-                {{ folder }}
-            </a>
+            <div class="item-card">
+                <a href="{{ url_for('dashboard', req_path=(current_path + '/' + folder) if current_path else folder) }}" class="item-link folder-link">
+                    <span class="icon">📂</span>
+                    {{ folder }}
+                </a>
+                <form action="/delete" method="post" onsubmit="return confirmDelete('{{ folder }}')">
+                    <input type="hidden" name="current_path" value="{{ current_path }}">
+                    <input type="hidden" name="item_name" value="{{ folder }}">
+                    <button type="submit" class="btn-del-mini">[ DELETE ]</button>
+                </form>
+            </div>
             {% endfor %}
 
             {% for file in files %}
-            <a href="{{ url_for('dashboard', req_path=(current_path + '/' + file) if current_path else file) }}" class="item">
-                <span class="icon">📄</span>
-                {{ file }}
-            </a>
+            <div class="item-card">
+                <a href="{{ url_for('dashboard', req_path=(current_path + '/' + file) if current_path else file) }}" class="item-link">
+                    <span class="icon">📄</span>
+                    {{ file }}
+                </a>
+                <form action="/delete" method="post" onsubmit="return confirmDelete('{{ file }}')">
+                    <input type="hidden" name="current_path" value="{{ current_path }}">
+                    <input type="hidden" name="item_name" value="{{ file }}">
+                    <button type="submit" class="btn-del-mini">[ DELETE ]</button>
+                </form>
+            </div>
             {% endfor %}
         </div>
+        
+        {% if not folders and not files %}
+            <div style="text-align: center; color: var(--dim-gray); padding: 40px; font-style: italic;">
+                > SECTOR EMPTY.<br>
+                > AWAITING DATA INPUT...
+            </div>
+        {% endif %}
     </div>
 
 </body>

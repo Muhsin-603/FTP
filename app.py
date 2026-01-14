@@ -4,9 +4,10 @@ from werkzeug.utils import secure_filename
 import sqlite3
 import os
 import sys
+import shutil  # Needed for destroying folders
 
 app = Flask(__name__)
-app.secret_key = "change-this-to-something-wild-drac" 
+app.secret_key = "change-this-to-something-wild-drac"
 
 # --- Configuration ---
 DB_NAME = "users.db"
@@ -14,7 +15,6 @@ DB_NAME = "users.db"
 # DEFAULT: If you don't provide a folder argument, we use 'uploads'
 BASE_DIR = os.path.abspath("uploads")
 
-# Allow running: python app.py C:/MyMusic
 if len(sys.argv) > 1:
     target_dir = sys.argv[1]
     if os.path.exists(target_dir):
@@ -89,25 +89,22 @@ def register():
             return render_template("register.html", error="Username already exists")
     return render_template("register.html")
 
-# --- THE NAVIGATOR (Dashboard) ---
 @app.route("/dashboard", defaults={'req_path': ''})
 @app.route("/dashboard/<path:req_path>")
 @login_required
 def dashboard(req_path):
-    # Security: Ensure the user stays inside BASE_DIR
     abs_path = os.path.join(BASE_DIR, req_path)
+    
+    # Security Check
     if not os.path.commonprefix([abs_path, BASE_DIR]) == BASE_DIR:
         return abort(404)
 
-    # If it's a file, download it
     if os.path.isfile(abs_path):
         return send_from_directory(os.path.dirname(abs_path), os.path.basename(abs_path))
 
-    # If it's a directory, list contents
     if not os.path.exists(abs_path):
         return abort(404)
 
-    # Separate folders and files for cleaner UI
     items = os.listdir(abs_path)
     folders = []
     files = []
@@ -119,7 +116,6 @@ def dashboard(req_path):
         else:
             files.append(item)
 
-    # Calculate 'parent' for the "Back" button
     parent = os.path.dirname(req_path) if req_path else None
 
     return render_template("dashboard.html", 
@@ -129,21 +125,19 @@ def dashboard(req_path):
                            current_path=req_path,
                            parent=parent)
 
+# --- UPLOAD WITH STRUCTURE PRESERVATION ---
 @app.route("/upload", methods=["POST"])
 @login_required
 def upload_file():
-    # Get the current path from the form to know where to drop the files
     current_path = request.form.get("current_path", "")
     target_dir = os.path.join(BASE_DIR, current_path)
 
-    # Security Check
     if not os.path.commonprefix([target_dir, BASE_DIR]) == BASE_DIR:
         return abort(403)
     
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-    # Handle multiple files (Folder upload)
     if 'file' not in request.files:
         return redirect(url_for('dashboard', req_path=current_path))
     
@@ -153,10 +147,62 @@ def upload_file():
         if file.filename == '':
             continue
         
-        # secure_filename usually strips slashes, so structure is flattened by default.
-        # This is safer. If you want full recursive structure, it requires complex JS.
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(target_dir, filename))
+        # KEY CHANGE: Handle paths like "MyFolder/MySub/file.txt"
+        # We split the path and secure each part individually to avoid "MyFolder_MySub_file.txt"
+        file_path_parts = file.filename.split('/')
+        safe_parts = [secure_filename(part) for part in file_path_parts]
+        
+        # Reconstruct the path relative to the target directory
+        safe_rel_path = os.path.join(*safe_parts)
+        full_dest_path = os.path.join(target_dir, safe_rel_path)
+        
+        # Ensure the subdirectories exist
+        os.makedirs(os.path.dirname(full_dest_path), exist_ok=True)
+        
+        file.save(full_dest_path)
+
+    return redirect(url_for('dashboard', req_path=current_path))
+
+# --- DESTRUCTION PROTOCOLS ---
+
+@app.route("/delete", methods=["POST"])
+@login_required
+def delete_item():
+    current_path = request.form.get("current_path", "")
+    item_name = request.form.get("item_name")
+    
+    # Construct path
+    target_path = os.path.join(BASE_DIR, current_path, item_name)
+    
+    # Security: Ensure we are still inside BASE_DIR
+    if not os.path.commonprefix([target_path, BASE_DIR]) == BASE_DIR:
+        abort(403)
+        
+    if os.path.exists(target_path):
+        if os.path.isdir(target_path):
+            shutil.rmtree(target_path) # Recursively delete folder
+        else:
+            os.remove(target_path) # Delete file
+            
+    return redirect(url_for('dashboard', req_path=current_path))
+
+@app.route("/delete-all", methods=["POST"])
+@login_required
+def delete_all():
+    current_path = request.form.get("current_path", "")
+    target_dir = os.path.join(BASE_DIR, current_path)
+
+    if not os.path.commonprefix([target_dir, BASE_DIR]) == BASE_DIR:
+        abort(403)
+        
+    # Nuke everything in the current folder
+    if os.path.exists(target_dir):
+        for item in os.listdir(target_dir):
+            item_path = os.path.join(target_dir, item)
+            if os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+            else:
+                os.remove(item_path)
 
     return redirect(url_for('dashboard', req_path=current_path))
 
@@ -166,5 +212,4 @@ def logout():
     return redirect("/")
 
 if __name__ == "__main__":
-    # You can now run: python app.py [path_to_folder]
     app.run(host="0.0.0.0", port=5000, debug=True)
