@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, session, url_for, send_from_directory, abort
+from flask import Flask, render_template, request, redirect, session, url_for, send_from_directory, abort, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import sqlite3
 import os
 import sys
-import shutil  # Needed for destroying folders
+import shutil
+import tempfile # For creating temporary zip files
 
 app = Flask(__name__)
 app.secret_key = "change-this-to-something-wild-drac"
@@ -99,8 +100,9 @@ def dashboard(req_path):
     if not os.path.commonprefix([abs_path, BASE_DIR]) == BASE_DIR:
         return abort(404)
 
+    # If it's a file, we usually download it, but let's keep the dashboard logic purely for navigation here
     if os.path.isfile(abs_path):
-        return send_from_directory(os.path.dirname(abs_path), os.path.basename(abs_path))
+         return send_from_directory(os.path.dirname(abs_path), os.path.basename(abs_path))
 
     if not os.path.exists(abs_path):
         return abort(404)
@@ -125,7 +127,6 @@ def dashboard(req_path):
                            current_path=req_path,
                            parent=parent)
 
-# --- UPLOAD WITH STRUCTURE PRESERVATION ---
 @app.route("/upload", methods=["POST"])
 @login_required
 def upload_file():
@@ -147,42 +148,72 @@ def upload_file():
         if file.filename == '':
             continue
         
-        # KEY CHANGE: Handle paths like "MyFolder/MySub/file.txt"
-        # We split the path and secure each part individually to avoid "MyFolder_MySub_file.txt"
         file_path_parts = file.filename.split('/')
         safe_parts = [secure_filename(part) for part in file_path_parts]
-        
-        # Reconstruct the path relative to the target directory
         safe_rel_path = os.path.join(*safe_parts)
         full_dest_path = os.path.join(target_dir, safe_rel_path)
         
-        # Ensure the subdirectories exist
         os.makedirs(os.path.dirname(full_dest_path), exist_ok=True)
-        
         file.save(full_dest_path)
 
     return redirect(url_for('dashboard', req_path=current_path))
 
-# --- DESTRUCTION PROTOCOLS ---
+# --- RETRIEVAL PROTOCOLS (Download) ---
+@app.route("/retrieve", methods=["POST"])
+@login_required
+def retrieve_item():
+    current_path = request.form.get("current_path", "")
+    item_name = request.form.get("item_name")
+    
+    target_path = os.path.join(BASE_DIR, current_path, item_name)
+    
+    # Security: Stay inside BASE_DIR
+    if not os.path.commonprefix([target_path, BASE_DIR]) == BASE_DIR:
+        abort(403)
 
+    if not os.path.exists(target_path):
+        abort(404)
+
+    # 1. If it's a FILE, just send it
+    if os.path.isfile(target_path):
+        return send_from_directory(os.path.dirname(target_path), os.path.basename(target_path), as_attachment=True)
+    
+    # 2. If it's a FOLDER, zip it first
+    elif os.path.isdir(target_path):
+        # Create a temp directory to store the zip
+        temp_dir = tempfile.mkdtemp()
+        try:
+            # Create zip file name (e.g., MyFolder.zip)
+            zip_name = f"{item_name}"
+            zip_path = os.path.join(temp_dir, zip_name)
+            
+            # Make the archive (shutil automatically adds .zip extension)
+            shutil.make_archive(zip_path, 'zip', target_path)
+            
+            # Send the zip file
+            return send_file(f"{zip_path}.zip", as_attachment=True, download_name=f"{item_name}.zip")
+        except Exception as e:
+            print(f"Error zipping: {e}")
+            abort(500)
+            
+    return redirect(url_for('dashboard', req_path=current_path))
+
+# --- DESTRUCTION PROTOCOLS ---
 @app.route("/delete", methods=["POST"])
 @login_required
 def delete_item():
     current_path = request.form.get("current_path", "")
     item_name = request.form.get("item_name")
-    
-    # Construct path
     target_path = os.path.join(BASE_DIR, current_path, item_name)
     
-    # Security: Ensure we are still inside BASE_DIR
     if not os.path.commonprefix([target_path, BASE_DIR]) == BASE_DIR:
         abort(403)
         
     if os.path.exists(target_path):
         if os.path.isdir(target_path):
-            shutil.rmtree(target_path) # Recursively delete folder
+            shutil.rmtree(target_path)
         else:
-            os.remove(target_path) # Delete file
+            os.remove(target_path)
             
     return redirect(url_for('dashboard', req_path=current_path))
 
@@ -195,7 +226,6 @@ def delete_all():
     if not os.path.commonprefix([target_dir, BASE_DIR]) == BASE_DIR:
         abort(403)
         
-    # Nuke everything in the current folder
     if os.path.exists(target_dir):
         for item in os.listdir(target_dir):
             item_path = os.path.join(target_dir, item)
